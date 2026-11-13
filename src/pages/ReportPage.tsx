@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AnatomyNotes } from '../components/AnatomyNotes'
 import { RangeChart, SiChart, type RangeRow } from '../components/charts'
 import { Button, Card, Field, FindingList, inputCls } from '../components/ui'
-import { GAIT_JOINTS, GAIT_LABEL, JOINT_LABEL, STANCE_REF, STANDING_JOINTS, gaitFindings, gaitSymmetry, hasGaitData, hasStaticData, loadShares, staticFindings } from '../lib/analysis'
+import { GAIT_JOINTS, GAIT_LABEL, JOINT_LABEL, STANCE_REF, STANDING_JOINTS, flaggedGaitJoints, flaggedStandingJoints, gaitFindings, gaitSymmetry, hasGaitData, hasStaticData, loadShares, staticFindings } from '../lib/analysis'
 import { byDog, useStore } from '../lib/store'
 import { useTrial } from '../lib/trial'
 import type { Range } from '../lib/types'
@@ -109,6 +110,11 @@ export default function ReportPage() {
                 rows={STANDING_JOINTS.map((j) => ({ label: JOINT_LABEL[j], band: tpl.standing[j], ...st.angles[j] }))}
               />
             </div>
+            {flaggedStandingJoints(st, tpl).length > 0 && (
+              <Card title="Anatomický kontext odchylek ve stoji" hint="Klouby, které se liší od šablony nebo mezi stranami.">
+                <AnatomyNotes joints={flaggedStandingJoints(st, tpl)} mode="consider" />
+              </Card>
+            )}
           </>
         )}
       </section>
@@ -144,6 +150,11 @@ export default function ReportPage() {
             <Card title="Index symetrie" hint="Rozdíl levé a pravé strany v % jejich průměru. Do 5 % fyziologická, 5–10 % mírná, nad 10 % klinicky významná asymetrie.">
               {gaitSymmetry(ga).length ? <SiChart rows={gaitSymmetry(ga)} /> : <p className="text-sm text-muted">Nezměřeno – zadejte hodnoty pro levou i pravou stranu.</p>}
             </Card>
+            {flaggedGaitJoints(ga, tpl).length > 0 && (
+              <Card title="Anatomický kontext odchylek v pohybu" hint="Klouby s odchylkou ROM nebo asymetrií a klouby, na které ukazují pozorované příznaky.">
+                <AnatomyNotes joints={flaggedGaitJoints(ga, tpl)} mode="consider" />
+              </Card>
+            )}
           </>
         )}
       </section>

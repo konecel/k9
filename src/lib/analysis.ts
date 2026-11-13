@@ -10,7 +10,7 @@ export const LIMB_NAME: Record<Limb, string> = {
 export const JOINT_LABEL: Record<GaitJoint, string> = {
   shoulder: 'Rameno',
   elbow: 'Loket',
-  carpus: 'Karpus',
+  carpus: 'Zápěstí',
   hip: 'Kyčel',
   stifle: 'Koleno',
   hock: 'Hlezno',
@@ -209,3 +209,26 @@ export const hasStaticData = (e: StaticExam) =>
 export const hasGaitData = (e: GaitExam) =>
   [...LIMBS.flatMap((k) => [e.stancePct[k], e.strideCm[k]]), ...GAIT_JOINTS.flatMap((j) => [e.rom[j].l, e.rom[j].r])].some((v) => v != null) ||
   e.headBob || e.pelvicAsymmetry || e.bunnyHop
+
+/** Joints of a static exam that deviate from the template or differ between sides. */
+export function flaggedStandingJoints(exam: StaticExam, tpl: ArchetypeTemplate): StandingJoint[] {
+  return STANDING_JOINTS.filter((j) => {
+    const p = exam.angles[j]
+    const off = [p.l, p.r].some((v) => v != null && rangeLevel(v, tpl.standing[j]) !== 'ok')
+    return off || (p.l != null && p.r != null && Math.abs(p.l - p.r) > 5)
+  })
+}
+
+/** Joints of a gait exam with ROM outside the template or asymmetric; observed signs add the joints they point to. */
+export function flaggedGaitJoints(exam: GaitExam, tpl: ArchetypeTemplate): GaitJoint[] {
+  const flagged = new Set<GaitJoint>(
+    GAIT_JOINTS.filter((j) => {
+      const p = exam.rom[j]
+      const si = symmetryIndex(p.l, p.r)
+      return [p.l, p.r].some((v) => v != null && rangeLevel(v, tpl.rom[j]) !== 'ok') || (si != null && siLevel(si) !== 'ok')
+    }),
+  )
+  if (exam.headBob) { flagged.add('shoulder'); flagged.add('elbow') }
+  if (exam.pelvicAsymmetry || exam.bunnyHop) flagged.add('hip')
+  return GAIT_JOINTS.filter((j) => flagged.has(j))
+}

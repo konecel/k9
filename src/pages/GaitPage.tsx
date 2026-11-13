@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AnatomyNotes } from '../components/AnatomyNotes'
 import { Button, Card, ExamBar, Field, FindingList, LevelBadge, NumInput, inputCls } from '../components/ui'
 import { GAIT_JOINTS, GAIT_LABEL, JOINT_LABEL, LIMBS, LIMB_LABEL, LIMB_NAME, STANCE_REF, gaitFindings, siLevel, symmetryIndex } from '../lib/analysis'
 import { byDog, useStore } from '../lib/store'
@@ -95,6 +96,10 @@ export default function GaitPage() {
               })}
             </tbody>
           </table>
+          <details className="mt-3 rounded-lg border border-line p-3">
+            <summary className="cursor-pointer text-sm font-medium text-brand">Anatomie kloubů a kde měřit</summary>
+            <div className="mt-3"><AnatomyNotes joints={GAIT_JOINTS} mode="measure" /></div>
+          </details>
         </Card>
       </div>
 

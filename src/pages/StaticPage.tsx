@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AnatomyNotes } from '../components/AnatomyNotes'
 import { Button, Card, ExamBar, Field, FindingList, NumInput, inputCls } from '../components/ui'
 import { JOINT_LABEL, LIMBS, LIMB_LABEL, LIMB_NAME, STANDING_JOINTS, bcsLabel, loadShares, staticFindings } from '../lib/analysis'
 import { byDog, useStore } from '../lib/store'
@@ -97,6 +98,10 @@ export default function StaticPage() {
               ))}
             </tbody>
           </table>
+          <details className="mt-3 rounded-lg border border-line p-3">
+            <summary className="cursor-pointer text-sm font-medium text-brand">Anatomie kloubů a kde měřit</summary>
+            <div className="mt-3"><AnatomyNotes joints={STANDING_JOINTS} mode="measure" /></div>
+          </details>
         </Card>
 
         <Card title="Obvody svalů" hint="V centimetrech, měřeno ve stejné výšce na obou stranách.">
