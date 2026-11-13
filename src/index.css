@@ -26,4 +26,7 @@ input, select, textarea {
 @media print {
   .no-print { display: none !important; }
   body { background: white; }
+  /* trial mode: no outputs */
+  [data-trial] main { display: none !important; }
+  [data-trial] .trial-print-note { display: block !important; }
 }

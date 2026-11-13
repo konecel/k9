@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, Outlet, useOutletContext, useParams } from 'react-router-dom'
+import { Link, Navigate, NavLink, Outlet, useOutletContext, useParams } from 'react-router-dom'
 import { FCI_GROUPS, TEMPLATES, breedMeta, getBreed } from '../lib/breeds'
+import { CLOUD_ENABLED } from '../lib/cloud-config'
 import { useStore } from '../lib/store'
+import { useSync } from '../lib/sync'
+import { useTrial } from '../lib/trial'
 import type { ArchetypeTemplate, Breed, Dog } from '../lib/types'
 
 export interface DogContext {
@@ -16,6 +19,7 @@ const tabCls = ({ isActive }: { isActive: boolean }) =>
 
 function SavedIndicator() {
   const savedAt = useStore((s) => s.savedAt)
+  const sync = useSync((s) => s.state)
   const [flash, setFlash] = useState(false)
   useEffect(() => {
     if (!savedAt) return
@@ -23,9 +27,14 @@ function SavedIndicator() {
     const t = setTimeout(() => setFlash(false), 1500)
     return () => clearTimeout(t)
   }, [savedAt])
+  const trial = useTrial((t) => t.active)
+  if (trial) return <span className="text-xs text-muted">Zkušební režim – neukládá se</span>
+  const text = CLOUD_ENABLED
+    ? sync === 'saving' ? '… Ukládám' : sync === 'error' ? '✕ Neuloženo' : sync === 'saved' ? '✓ Uloženo v cloudu' : '✓ Změny se ukládají automaticky'
+    : flash ? '✓ Uloženo' : '✓ Změny se ukládají automaticky'
   return (
-    <span className={`text-xs transition-opacity ${flash ? 'text-brand' : 'text-muted'}`} aria-live="polite">
-      ✓ {flash ? 'Uloženo' : 'Změny se ukládají automaticky'}
+    <span className={`text-xs ${sync === 'error' ? 'font-medium text-ink' : flash || sync === 'saved' ? 'text-brand' : 'text-muted'}`} aria-live="polite">
+      {text}
     </span>
   )
 }
@@ -33,13 +42,8 @@ function SavedIndicator() {
 export default function DogLayout() {
   const { id } = useParams()
   const dog = useStore((s) => s.dogs.find((d) => d.id === id))
-  if (!dog) {
-    return (
-      <p className="text-muted">
-        Pes nebyl nalezen. <Link className="text-brand underline" to="/">Zpět na přehled</Link>
-      </p>
-    )
-  }
+  // unknown dog (deleted, another account, or a stale link) → back to the overview
+  if (!dog) return <Navigate to="/" replace />
   const breed = getBreed(dog.breedId)
   const tpl = TEMPLATES[dog.archetype]
 

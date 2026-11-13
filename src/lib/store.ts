@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createJSONStorage, persist } from 'zustand/middleware'
+import { CLOUD_ENABLED } from './cloud-config'
 import type { Dog, GaitExam, StaticExam } from './types'
 
 const uid = () => crypto.randomUUID()
@@ -35,12 +36,16 @@ export const newGaitExam = (dogId: string): GaitExam => ({
   notes: '',
 })
 
+const noStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} }
+
 interface State {
   dogs: Dog[]
   /** Every exam carries its dogId – records of two dogs can never blend. */
   staticExams: StaticExam[]
   gaitExams: GaitExam[]
   savedAt: number
+  /** replace everything with data loaded from the cloud (or clear on sign-out) */
+  replaceAll: (data: { dogs: Dog[]; staticExams: StaticExam[]; gaitExams: GaitExam[] }) => void
   addDog: (dog: Omit<Dog, 'id' | 'createdAt'>) => string
   updateDog: (id: string, patch: Partial<Dog>) => void
   deleteDog: (id: string) => void
@@ -59,6 +64,7 @@ export const useStore = create<State>()(
       staticExams: [],
       gaitExams: [],
       savedAt: 0,
+      replaceAll: (data) => set({ ...data }),
       addDog: (dog) => {
         const id = uid()
         set((s) => ({ dogs: [...s.dogs, { ...dog, id, createdAt: new Date().toISOString() }], savedAt: Date.now() }))
@@ -87,7 +93,12 @@ export const useStore = create<State>()(
       updateGait: (id, patch) => set((s) => ({ gaitExams: s.gaitExams.map((e) => (e.id === id ? { ...e, ...patch } : e)), savedAt: Date.now() })),
       deleteGait: (id) => set((s) => ({ gaitExams: s.gaitExams.filter((e) => e.id !== id), savedAt: Date.now() })),
     }),
-    { name: 'k9bio.v1' },
+    {
+      name: 'k9bio.v1',
+      // With accounts enabled nothing is kept in the browser: the cloud is the only copy,
+      // so a shared computer never shows another account's dogs.
+      storage: createJSONStorage(() => (CLOUD_ENABLED ? noStorage : localStorage)),
+    },
   ),
 )
 

@@ -4,6 +4,7 @@ import { RangeChart, SiChart, type RangeRow } from '../components/charts'
 import { Button, Card, Field, FindingList, inputCls } from '../components/ui'
 import { GAIT_JOINTS, GAIT_LABEL, JOINT_LABEL, STANCE_REF, STANDING_JOINTS, gaitFindings, gaitSymmetry, hasGaitData, hasStaticData, loadShares, staticFindings } from '../lib/analysis'
 import { byDog, useStore } from '../lib/store'
+import { useTrial } from '../lib/trial'
 import type { Range } from '../lib/types'
 import { useDog } from './DogLayout'
 
@@ -29,6 +30,7 @@ function Empty({ text, to, cta }: { text: string; to: string; cta: string }) {
 
 export default function ReportPage() {
   const { dog, breed, tpl } = useDog()
+  const trial = useTrial((t) => t.active)
   const statics = byDog(useStore((s) => s.staticExams), dog.id).filter(hasStaticData)
   const gaits = byDog(useStore((s) => s.gaitExams), dog.id).filter(hasGaitData)
   const [staticId, setStaticId] = useState<string | null>(null)
@@ -57,7 +59,7 @@ export default function ReportPage() {
             </select>
           </Field>
         )}
-        <div className="ml-auto"><Button variant="ghost" onClick={() => window.print()}>Tisk / PDF</Button></div>
+        <div className="ml-auto">{trial ? <span className="text-xs text-muted">Tisk / PDF po přihlášení</span> : <Button variant="ghost" onClick={() => window.print()}>Tisk / PDF</Button>}</div>
       </div>
 
       <Card>
