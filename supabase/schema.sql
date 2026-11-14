@@ -47,3 +47,14 @@ drop policy if exists "own gait exams" on public.gait_exams;
 create policy "own gait exams" on public.gait_exams
   for all to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- Fotografie ze statické analýzy: soukromé úložiště, každý účet má vlastní složku
+-- pojmenovanou svým id a nikam jinam nevidí.
+insert into storage.buckets (id, name, public) values ('photos', 'photos', false)
+  on conflict (id) do nothing;
+
+drop policy if exists "own photos" on storage.objects;
+create policy "own photos" on storage.objects
+  for all to authenticated
+  using (bucket_id = 'photos' and (storage.foldername(name))[1] = auth.uid()::text)
+  with check (bucket_id = 'photos' and (storage.foldername(name))[1] = auth.uid()::text);

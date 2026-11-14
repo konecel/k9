@@ -48,7 +48,7 @@ export default function ProfilePage() {
             <input className={inputCls} value={dog.sport} onChange={(e) => set({ sport: e.target.value })} />
           </Field>
           <div className="sm:col-span-2">
-            <Field label="Anamnéza">
+            <Field label="Poznámky" hint="Podrobná anamnéza (majitel, důvod návštěvy, otázky podle systémů) je na záložce Anamnéza.">
               <textarea rows={4} className={inputCls} value={dog.history} onChange={(e) => set({ history: e.target.value })} />
             </Field>
           </div>

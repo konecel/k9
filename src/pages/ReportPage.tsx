@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnatomyNotes } from '../components/AnatomyNotes'
+import { PhotoCanvas } from '../components/PhotoCanvas'
+import { PhotoMeasures } from '../components/PhotoSection'
+import { ONSET_LABEL, PROGRESS_LABEL, SYSTEM_QUESTIONS, TEXT_FIELDS, hasAnamnesis } from '../lib/anamnesis'
+import { VIEWS } from '../lib/landmarks'
 import { RangeChart, SiChart, type RangeRow } from '../components/charts'
 import { Button, Card, Field, FindingList, inputCls } from '../components/ui'
 import { GAIT_JOINTS, GAIT_LABEL, JOINT_LABEL, STANCE_REF, STANDING_JOINTS, flaggedGaitJoints, flaggedStandingJoints, gaitFindings, gaitSymmetry, hasGaitData, hasStaticData, loadShares, staticFindings } from '../lib/analysis'
@@ -38,6 +42,9 @@ export default function ReportPage() {
   const [gaitId, setGaitId] = useState<string | null>(null)
   const st = statics.find((e) => e.id === staticId) ?? statics[0]
   const ga = gaits.find((e) => e.id === gaitId) ?? gaits[0]
+
+  const an = dog.anamnesis
+  const answered = an ? SYSTEM_QUESTIONS.filter((q) => an.systems[q.id]?.answer || an.systems[q.id]?.note) : []
 
   const shares = st ? loadShares(st.load) : null
   const half = (r: Range): Range => [r[0] / 2, r[1] / 2]
@@ -78,8 +85,40 @@ export default function ReportPage() {
             <div key={k}><dt className="text-xs text-muted">{k}</dt><dd className="font-medium">{v}</dd></div>
           ))}
         </dl>
-        {dog.history && <p className="mt-4 border-t border-line pt-3 text-sm"><span className="text-xs text-muted">Anamnéza: </span>{dog.history}</p>}
+        {dog.history && <p className="mt-4 border-t border-line pt-3 text-sm"><span className="text-xs text-muted">Poznámky: </span>{dog.history}</p>}
       </Card>
+
+      {hasAnamnesis(an) && (
+        <section className="space-y-5">
+          <h2 className="text-xl font-bold">Anamnéza {an.date && <span className="text-sm font-normal text-muted">· {date(an.date)}{an.clinic && ` · ${an.clinic}`}</span>}</h2>
+          <Card>
+            <dl className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+              {(an.onset || an.progress) && (
+                <div><dt className="text-xs text-muted">Začátek / průběh</dt><dd>{[an.onset && ONSET_LABEL[an.onset], an.progress && PROGRESS_LABEL[an.progress]].filter(Boolean).join(' · ')}</dd></div>
+              )}
+              {TEXT_FIELDS.filter(([k]) => an[k]).map(([k, label]) => (
+                <div key={k}><dt className="text-xs text-muted">{label}</dt><dd className="whitespace-pre-wrap">{k === 'vaccination' ? date(an[k] as string) : (an[k] as string)}</dd></div>
+              ))}
+            </dl>
+            {answered.length > 0 && (
+              <div className="mt-4 border-t border-line pt-3">
+                <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">Otázky podle systémů</h3>
+                <ul className="space-y-1 text-sm">
+                  {answered.map((q) => {
+                    const s = an.systems[q.id]
+                    const abnormal = s.answer != null && s.answer !== q.normal
+                    return (
+                      <li key={q.id} className={abnormal ? 'font-medium' : 'text-muted'}>
+                        {abnormal ? '! ' : ''}{q.text} {s.answer ? (s.answer === 'yes' ? 'Ano' : 'Ne') : '–'}{s.note && ` – ${s.note}`}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )}
+          </Card>
+        </section>
+      )}
 
       <section className="space-y-5">
         <h2 className="text-xl font-bold">Statická analýza {st && <span className="text-sm font-normal text-muted">· {date(st.date)}</span>}</h2>
@@ -91,6 +130,19 @@ export default function ReportPage() {
               <FindingList findings={staticFindings(st, tpl)} empty="Bez nálezů." />
               {st.notes && <p className="mt-3 border-t border-line pt-3 text-sm whitespace-pre-wrap"><span className="text-xs text-muted">Poznámky: </span>{st.notes}</p>}
             </Card>
+            {(st.photos?.length ?? 0) > 0 && (
+              <Card title="Fotografie stoje" hint="Plný bod = umístěno nebo potvrzeno ručně, dutý kroužek = návrh AI.">
+                <div className="grid gap-5 sm:grid-cols-2">
+                  {VIEWS.flatMap((v) => st.photos!.filter((p) => p.view === v.id).map((p) => (
+                    <figure key={p.id} className="min-w-0 break-inside-avoid space-y-2">
+                      <figcaption className="text-sm font-semibold">{v.label}</figcaption>
+                      <PhotoCanvas photo={p} />
+                      <PhotoMeasures photo={p} />
+                    </figure>
+                  )))}
+                </div>
+              </Card>
+            )}
             <div className="grid gap-5 lg:grid-cols-2">
               <Card title="Zatížení končetin" hint="Podíl tělesné hmotnosti na každé končetině. Šedý pás = očekávání pro typ.">
                 {shares ? (

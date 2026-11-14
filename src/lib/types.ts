@@ -55,6 +55,58 @@ export interface Dog {
   sport: string
   history: string
   createdAt: string
+  /** rozšířená anamnéza; u dříve založených psů chybí */
+  anamnesis?: Anamnesis
+}
+
+export type YesNo = 'yes' | 'no' | null
+
+export interface Anamnesis {
+  clinic: string
+  date: string
+  ownerName: string
+  ownerAddress: string
+  ownerEmail: string
+  ownerPhone: string
+  species: string
+  neuteredDate: string
+  vaccination: string
+  diet: string
+  deworming: string
+  environment: string
+  /** důvod návštěvy slovy majitele */
+  reason: string
+  course: string
+  onset: 'sudden' | 'gradual' | null
+  progress: 'better' | 'same' | 'worse' | null
+  medications: string
+  allergies: string
+  surgeries: string
+  illnesses: string
+  travel: string
+  contacts: string
+  recentBirth: string
+  poisoning: string
+  /** otázky podle systémů: id otázky → odpověď a poznámka */
+  systems: Record<string, { answer: YesNo; note: string }>
+}
+
+export type PhotoView = 'left' | 'right' | 'front' | 'rear' | 'top'
+
+/** Bod na fotce v podílu šířky/výšky (0–1). `by` říká, kdo ho naposledy umístil. */
+export interface PhotoPoint {
+  x: number
+  y: number
+  by: 'ai' | 'human'
+}
+
+export interface ExamPhoto {
+  /** klíč obrazových dat v úložišti fotek */
+  id: string
+  view: PhotoView
+  w: number
+  h: number
+  points: Record<string, PhotoPoint>
 }
 
 export interface StaticExam {
@@ -72,6 +124,8 @@ export interface StaticExam {
   armCm: Pair
   bcs: Num
   notes: string
+  /** nejvýše jedna fotka na pohled; u starších měření chybí */
+  photos?: ExamPhoto[]
 }
 
 export interface GaitExam {

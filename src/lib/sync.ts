@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { clearPhotoCache, flushPendingPhotos } from './photos'
 import { useStore } from './store'
 import { supabase } from './supabase'
 
@@ -33,6 +34,7 @@ async function flush() {
   flushing = true
   useSync.setState({ state: 'saving', error: null })
   try {
+    await flushPendingPhotos()
     // dogs first (exams reference them), deletions in the opposite order
     for (const { table, pick } of TABLES) {
       const current = pick()
@@ -106,6 +108,7 @@ export async function startSync() {
   })
   useSync.setState({ state: 'idle', error: null })
   unsubscribe = useStore.subscribe(schedule)
+  // also uploads photos taken in trial mode
   if (carried.dogs.length || carried.staticExams.length || carried.gaitExams.length) schedule()
 }
 
@@ -117,7 +120,7 @@ export function stopSync(clear = false) {
   if (timer) clearTimeout(timer)
   timer = null
   synced = { dogs: new Map(), static_exams: new Map(), gait_exams: new Map() }
-  if (clear) useStore.getState().replaceAll({ dogs: [], staticExams: [], gaitExams: [] })
+  if (clear) { useStore.getState().replaceAll({ dogs: [], staticExams: [], gaitExams: [] }); clearPhotoCache() }
   useSync.setState({ state: 'idle', error: null })
 }
 

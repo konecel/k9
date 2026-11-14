@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",
+    "heic-to": "^1.6.7",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.5",
     "recharts": "^3.10.1",
+    "utif2": "^4.1.0",
     "zustand": "^5.1.0"
   },
   "devDependencies": {

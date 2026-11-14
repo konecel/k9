@@ -7,6 +7,7 @@ import { hasUnsavedChanges, retrySync, useSync } from './lib/sync'
 import { useStore } from './lib/store'
 import { useTrial } from './lib/trial'
 import Login from './pages/Login'
+import AnamnesisPage from './pages/AnamnesisPage'
 import Breeds from './pages/Breeds'
 import Dashboard from './pages/Dashboard'
 import DogLayout from './pages/DogLayout'
@@ -86,6 +87,7 @@ export default function App() {
             <Route path="/breeds" element={<Breeds />} />
             <Route path="/dog/:id" element={<DogLayout />}>
               <Route index element={<ProfilePage />} />
+              <Route path="anamnesis" element={<AnamnesisPage />} />
               <Route path="static" element={<StaticPage />} />
               <Route path="gait" element={<GaitPage />} />
               <Route path="report" element={<ReportPage />} />

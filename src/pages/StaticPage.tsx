@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AnatomyNotes } from '../components/AnatomyNotes'
+import { PhotoSection } from '../components/PhotoSection'
 import { Button, Card, ExamBar, Field, FindingList, NumInput, inputCls } from '../components/ui'
 import { JOINT_LABEL, LIMBS, LIMB_LABEL, LIMB_NAME, STANDING_JOINTS, bcsLabel, loadShares, staticFindings } from '../lib/analysis'
 import { byDog, useStore } from '../lib/store'
@@ -25,7 +26,7 @@ export default function StaticPage() {
   if (!exam) {
     return (
       <div className="rounded-xl border-2 border-dashed border-line p-12 text-center">
-        <p className="mb-4 text-muted">Statická analýza hodnotí stoj: zatížení končetin, úhly kloubů, symetrii svalů a kondici.</p>
+        <p className="mb-4 text-muted">Statická analýza hodnotí stoj: fotografie z pěti pohledů, zatížení končetin, úhly kloubů, symetrii svalů a kondici.</p>
         <Button onClick={() => setSelected(addStatic(dog.id))}>Začít statické měření</Button>
       </div>
     )
@@ -45,6 +46,8 @@ export default function StaticPage() {
         onDelete={() => { deleteStatic(exam.id); setSelected(null) }}
         onDate={(date) => set({ date })}
       />
+
+      <PhotoSection key={exam.id} exam={exam} set={set} />
 
       <div className="grid gap-5 lg:grid-cols-2">
         <Card title="Zatížení končetin" hint="Hodnoty z vah v kg nebo v % – přepočítají se na podíly.">

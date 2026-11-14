@@ -61,6 +61,7 @@ export default function DogLayout() {
       </div>
       <nav className="no-print flex overflow-x-auto border-b border-line">
         <NavLink to="." end className={tabCls}>Profil</NavLink>
+        <NavLink to="anamnesis" className={tabCls}>Anamnéza</NavLink>
         <NavLink to="static" className={tabCls}>Statická analýza</NavLink>
         <NavLink to="gait" className={tabCls}>Dynamická analýza</NavLink>
         <NavLink to="report" className={tabCls}>Report</NavLink>

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { CLOUD_ENABLED } from './cloud-config'
+import { deletePhotos } from './photos'
 import type { Dog, GaitExam, StaticExam } from './types'
 
 const uid = () => crypto.randomUUID()
@@ -71,20 +72,25 @@ export const useStore = create<State>()(
         return id
       },
       updateDog: (id, patch) => set((s) => ({ dogs: s.dogs.map((d) => (d.id === id ? { ...d, ...patch } : d)), savedAt: Date.now() })),
-      deleteDog: (id) =>
+      deleteDog: (id) => {
+        void deletePhotos(get().staticExams.filter((e) => e.dogId === id).flatMap((e) => (e.photos ?? []).map((p) => p.id)))
         set((s) => ({
           dogs: s.dogs.filter((d) => d.id !== id),
           staticExams: s.staticExams.filter((e) => e.dogId !== id),
           gaitExams: s.gaitExams.filter((e) => e.dogId !== id),
           savedAt: Date.now(),
-        })),
+        }))
+      },
       addStatic: (dogId) => {
         const exam = newStaticExam(dogId, get().dogs.find((d) => d.id === dogId)?.heightCm ?? null)
         set((s) => ({ staticExams: [...s.staticExams, exam], savedAt: Date.now() }))
         return exam.id
       },
       updateStatic: (id, patch) => set((s) => ({ staticExams: s.staticExams.map((e) => (e.id === id ? { ...e, ...patch } : e)), savedAt: Date.now() })),
-      deleteStatic: (id) => set((s) => ({ staticExams: s.staticExams.filter((e) => e.id !== id), savedAt: Date.now() })),
+      deleteStatic: (id) => {
+        void deletePhotos((get().staticExams.find((e) => e.id === id)?.photos ?? []).map((p) => p.id))
+        set((s) => ({ staticExams: s.staticExams.filter((e) => e.id !== id), savedAt: Date.now() }))
+      },
       addGait: (dogId) => {
         const exam = newGaitExam(dogId)
         set((s) => ({ gaitExams: [...s.gaitExams, exam], savedAt: Date.now() }))

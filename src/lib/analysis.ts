@@ -1,3 +1,4 @@
+import { photoFindings } from './landmarks'
 import type { ArchetypeTemplate, Finding, GaitExam, GaitJoint, GaitType, Level, Limb, Num, Pair, Range, StandingJoint, StaticExam } from './types'
 
 export const LIMB_LABEL: Record<Limb, string> = { fl: 'LH', fr: 'PH', hl: 'LP', hr: 'PP' }
@@ -123,7 +124,7 @@ export function staticFindings(exam: StaticExam, tpl: ArchetypeTemplate): Findin
     out.push({ level, text: `BCS ${exam.bcs}/9 – ${text}.` })
   }
 
-  return out
+  return out.concat(photoFindings(exam))
 }
 
 export interface SiRow {
@@ -204,7 +205,7 @@ export function gaitFindings(exam: GaitExam, tpl: ArchetypeTemplate): Finding[] 
 }
 
 export const hasStaticData = (e: StaticExam) =>
-  [...LIMBS.map((k) => e.load[k]), e.bodyLengthCm, e.bcs, e.thighCm.l, e.thighCm.r, e.armCm.l, e.armCm.r, ...STANDING_JOINTS.flatMap((j) => [e.angles[j].l, e.angles[j].r])].some((v) => v != null)
+  [...LIMBS.map((k) => e.load[k]), e.bodyLengthCm, e.bcs, e.thighCm.l, e.thighCm.r, e.armCm.l, e.armCm.r, ...STANDING_JOINTS.flatMap((j) => [e.angles[j].l, e.angles[j].r])].some((v) => v != null) || (e.photos?.length ?? 0) > 0
 
 export const hasGaitData = (e: GaitExam) =>
   [...LIMBS.flatMap((k) => [e.stancePct[k], e.strideCm[k]]), ...GAIT_JOINTS.flatMap((j) => [e.rom[j].l, e.rom[j].r])].some((v) => v != null) ||
